@@ -187,8 +187,6 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text("Latest Received SMS: $_message"),
-                Text('EasySmsReceiver Status: $_easySmsReceiverStatus\n'),
                 // Email Field
                 TextFormField(
                   controller: _emailController,
@@ -250,6 +248,11 @@ class _LoginPageState extends State<LoginPage> {
                     side: BorderSide(color: Colors.blue),
                   ),
                 ),
+                TextButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/registration');
+                    },
+                    child: Text("Create Account"))
               ],
             ),
           ),
