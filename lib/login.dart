@@ -159,34 +159,48 @@ class _LoginPageState extends State<LoginPage> {
 
   void _login() {
     if (_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Logging in...')),
-      );
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   SnackBar(content: Text('Logging in...')),
+      // );
       logIn();
     }
   }
 
   void _loginWithGoogle() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Google login clicked!')),
-    );
+    // ScaffoldMessenger.of(context).showSnackBar(
+    //   SnackBar(content: Text('Google login clicked!')),
+    // );
     signInWithGoogle();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Login'),
-      ),
+      // appBar: AppBar(
+      //   title: Text('Login'),
+      // ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
+          padding: EdgeInsets.only(top: 40),
           child: Form(
             key: _formKey,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                ClipOval(
+                  child: Container(
+                    width: 100.0, // Set the width of the circle
+                    height: 100.0, // Set the height of the circle
+                    child: Image.asset('assets/Logo.jpg', fit: BoxFit.cover),
+                  ),
+                ),
+                Text(
+                  'Login',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 16),
                 // Email Field
                 TextFormField(
                   controller: _emailController,
@@ -227,14 +241,20 @@ class _LoginPageState extends State<LoginPage> {
                   },
                 ),
                 SizedBox(height: 24),
-                // Login Button
-                ElevatedButton(
-                  onPressed: _login,
-                  style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _login,
+                    style: ElevatedButton.styleFrom(
+                      shape: LinearBorder(),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                    ),
+                    child: Text('Login', style: TextStyle(fontSize: 16)),
                   ),
-                  child: Text('Login', style: TextStyle(fontSize: 16)),
                 ),
+                // Login Button
+
                 SizedBox(height: 16),
                 // Login with Google Button
                 OutlinedButton.icon(
@@ -244,8 +264,12 @@ class _LoginPageState extends State<LoginPage> {
                   label:
                       Text('Login with Google', style: TextStyle(fontSize: 16)),
                   style: OutlinedButton.styleFrom(
+                    shape:
+                        RoundedRectangleBorder(), // Use RoundedRectangleBorder
                     padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    side: BorderSide(color: Colors.blue),
+                    side: BorderSide(
+                        color: Colors.black), // Set border color to black
+                    minimumSize: Size(double.infinity, 0),
                   ),
                 ),
                 TextButton(

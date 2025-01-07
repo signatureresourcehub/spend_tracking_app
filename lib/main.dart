@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:myapp/onboarding_screen.dart';
+import 'package:myapp/welcome.dart';
 
 import 'registration_page.dart';
 import 'package:flutter/material.dart';
@@ -97,9 +98,9 @@ class MyApp extends StatelessWidget {
         ),
         inputDecorationTheme: InputDecorationTheme(
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-          filled: true,
-          fillColor: Colors.grey[200],
-          hintStyle: TextStyle(color: Colors.grey[600]),
+          //filled: true,
+          //fillColor: Colors.grey[200],
+          //hintStyle: TextStyle(color: Colors.grey[100]),
         ),
         appBarTheme: AppBarTheme(
           backgroundColor: Colors.teal,
@@ -123,10 +124,11 @@ class MyApp extends StatelessWidget {
       ),
       routes: {
         '/registration': (context) => RegistrationPage(),
+        '/login': (context) => LoginPage(),
       },
       themeMode:
           ThemeMode.light, // Automatically switches based on system settings
-      home: const OnboardingScreen(),
+      home: OnboardingScreen(),
     );
   }
 }

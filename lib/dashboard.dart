@@ -1,9 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:easy_sms_receiver/easy_sms_receiver.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:myapp/login.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:intl/intl.dart';
 
 class DashBoard extends StatefulWidget {
   const DashBoard({Key? key}) : super(key: key);
@@ -18,6 +20,7 @@ class _DashBoardState extends State<DashBoard> {
   final EasySmsReceiver easySmsReceiver = EasySmsReceiver.instance;
   String _easySmsReceiverStatus = "Undefined";
   String _message = "";
+  String _userName = "Loading...";
   Future<void> startSmsReceiver() async {
     // Platform messages may fail, so we use a try/catch PlatformException.
 
@@ -50,6 +53,30 @@ class _DashBoardState extends State<DashBoard> {
     super.initState();
 
     startSmsReceiver();
+    _fetchUserName();
+  }
+
+  Future<void> _fetchUserName() async {
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        String? name;
+        if (user.displayName != null && user.displayName!.isNotEmpty) {
+          name = user.displayName; // Fetch name from Google account
+        } else {
+          DocumentSnapshot userDoc = await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .get();
+          name = userDoc['name'];
+        }
+        setState(() {
+          _userName = name ?? 'User';
+        });
+      }
+    } catch (e) {
+      print("Error fetching user name: $e");
+    }
   }
 
   logout() async {
@@ -67,11 +94,96 @@ class _DashBoardState extends State<DashBoard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Dashboard"),
-      ),
+      // appBar: AppBar(
+      //   title: Text("Dashboard"),
+      // ),
       body: Column(
         children: [
+          SizedBox(height: 40),
+          Container(
+            padding: EdgeInsets.all(16),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: Colors.green,
+                  child: Icon(
+                    Icons.account_circle,
+                    size: 40,
+                    color: Colors.white,
+                  ), // Display the first letter of the user's name
+                ),
+                SizedBox(width: 8),
+                Text("Hi,",
+                    style: TextStyle(
+                      fontSize: 16,
+                    )),
+                Text(_userName,
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16)), // Display the user's name
+              ],
+            ),
+          ),
+          // SizedBox(height: 20),
+          Container(
+            padding: EdgeInsets.all(16),
+            alignment: Alignment.topLeft,
+            child: Text(
+              "${DateFormat('MMMM dd').format(DateTime.now())}",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.greenAccent, Colors.green],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            margin: EdgeInsets.all(16),
+            child: Card(
+              color: Colors.transparent, // Make the card background transparent
+              elevation: 0, // Remove card shadow
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      children: [
+                        Text(
+                          "Spend",
+                          style: TextStyle(
+                            fontSize: 16,
+                          ),
+                        ),
+                        Text(
+                          "\₹500",
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                    Column(
+                      children: [
+                        Text(
+                          "Income",
+                          style: TextStyle(fontSize: 16),
+                        ),
+                        Text(
+                          "\₹1000",
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
           Text("Latest Received SMS: $_message"),
           Text('EasySmsReceiver Status: $_easySmsReceiverStatus\n'),
           Container(

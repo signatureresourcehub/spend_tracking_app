@@ -47,19 +47,6 @@ class _RegistrationPageState extends State<RegistrationPage> {
           'phone': _phoneController.text,
         });
 
-        // Create a new user with a first and last name
-        // final user = <String, dynamic>{
-        //   "first": "Alan",
-        //   "middle": "Mathison",
-        //   "last": "Turing",
-        //   "born": 1912
-        // };
-
-// Add a new document with a generated ID
-        // var db = FirebaseFirestore.instance;
-        // db.collection("users").add(user).then((DocumentReference doc) =>
-        //     print('DocumentSnapshot added with ID: ${doc.id}'));
-
         // Clear the form
         _nameController.clear();
         _emailController.clear();
@@ -67,10 +54,11 @@ class _RegistrationPageState extends State<RegistrationPage> {
         _passwordController.clear();
         _confirmPasswordController.clear();
 
+        Navigator.pushNamed(context, '/login');
         // Show a success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Registration successful')),
-        );
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   SnackBar(content: Text('Registration successful')),
+        // );
       } on FirebaseAuthException catch (e) {
         // Show error message
         ScaffoldMessenger.of(context).showSnackBar(
@@ -83,9 +71,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Registration'),
-      ),
+      // appBar: AppBar(
+      //   title: Text('Registration'),
+      // ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -93,9 +81,23 @@ class _RegistrationPageState extends State<RegistrationPage> {
           child: Column(
             children: [
               SizedBox(height: 20),
+              ClipOval(
+                child: Container(
+                  width: 100.0, // Set the width of the circle
+                  height: 100.0, // Set the height of the circle
+                  child: Image.asset('assets/Logo.jpg', fit: BoxFit.cover),
+                ),
+              ),
+              Text(
+                'Create Account',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 20),
               TextFormField(
                 controller: _nameController,
-                decoration: InputDecoration(labelText: 'Name'),
+                decoration: InputDecoration(
+                    labelText: 'Name', border: OutlineInputBorder()),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter your name';
@@ -106,7 +108,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
               SizedBox(height: 20),
               TextFormField(
                 controller: _emailController,
-                decoration: InputDecoration(labelText: 'Email'),
+                decoration: InputDecoration(
+                    labelText: 'Email', border: OutlineInputBorder()),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter your email';
@@ -120,7 +123,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
               SizedBox(height: 20),
               TextFormField(
                 controller: _phoneController,
-                decoration: InputDecoration(labelText: 'Phone Number'),
+                decoration: InputDecoration(
+                    labelText: 'Phone Number', border: OutlineInputBorder()),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter your phone number';
@@ -134,7 +138,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
               SizedBox(height: 20),
               TextFormField(
                 controller: _passwordController,
-                decoration: InputDecoration(labelText: 'Password'),
+                decoration: InputDecoration(
+                    labelText: 'Password', border: OutlineInputBorder()),
                 obscureText: true,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -149,7 +154,9 @@ class _RegistrationPageState extends State<RegistrationPage> {
               SizedBox(height: 20),
               TextFormField(
                 controller: _confirmPasswordController,
-                decoration: InputDecoration(labelText: 'Confirm Password'),
+                decoration: InputDecoration(
+                    labelText: 'Confirm Password',
+                    border: OutlineInputBorder()),
                 obscureText: true,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -162,10 +169,23 @@ class _RegistrationPageState extends State<RegistrationPage> {
                 },
               ),
               SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _submitForm,
-                child: Text('Register'),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    shape: LinearBorder(),
+                    padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                  ),
+                  onPressed: _submitForm,
+                  child: Text('Register'),
+                ),
               ),
+              SizedBox(height: 10),
+              TextButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/login');
+                  },
+                  child: Text("Already have an account, login"))
             ],
           ),
         ),
