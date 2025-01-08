@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:myapp/dashboard.dart';
+import 'package:myapp/mainpage.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class LoginPage extends StatefulWidget {
@@ -13,9 +14,9 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final plugin = EasySmsReceiver.instance;
-  final EasySmsReceiver easySmsReceiver = EasySmsReceiver.instance;
-  String _easySmsReceiverStatus = "Undefined";
+  // final plugin = EasySmsReceiver.instance;
+  // final EasySmsReceiver easySmsReceiver = EasySmsReceiver.instance;
+  // String _easySmsReceiverStatus = "Undefined";
   String _message = "";
   final storage = const FlutterSecureStorage();
 
@@ -34,7 +35,7 @@ class _LoginPageState extends State<LoginPage> {
         issigned = true;
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => DashBoard()),
+          MaterialPageRoute(builder: (context) => MainPage()),
           (Route<dynamic> route) => false, // Removes all previous routes
         );
       });
@@ -53,38 +54,11 @@ class _LoginPageState extends State<LoginPage> {
   //   );
   // }
 
-  Future<void> startSmsReceiver() async {
-    // Platform messages may fail, so we use a try/catch PlatformException.
-
-    easySmsReceiver.listenIncomingSms(
-      onNewMessage: (message) {
-        print("You have new message:");
-        print("::::::Message Address: ${message.address}");
-        print("::::::Message body: ${message.body}");
-
-        if (!mounted) return;
-
-        setState(() {
-          _message = message.body ?? "Error reading message body.";
-        });
-      },
-    );
-
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    if (!mounted) return;
-
-    setState(() {
-      _easySmsReceiverStatus = "Running";
-    });
-  }
-
   void initState() {
 // TODO: implement initState
     super.initState();
     getUser();
-    startSmsReceiver();
+    // startSmsReceiver();
   }
 
   @override
@@ -139,12 +113,13 @@ class _LoginPageState extends State<LoginPage> {
             .signInWithEmailAndPassword(
                 email: _emailController.text,
                 password: _passwordController.text);
+        getUser();
 
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => DashBoard()),
-          (Route<dynamic> route) => false, // Removes all previous routes
-        );
+        // Navigator.pushAndRemoveUntil(
+        //   context,
+        //   MaterialPageRoute(builder: (context) => MainPage()),
+        //   (Route<dynamic> route) => false, // Removes all previous routes
+        // );
       } on FirebaseAuthException catch (e) {
         showError(e.message.toString());
         print(e.code);

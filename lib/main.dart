@@ -1,4 +1,7 @@
 import 'dart:ui';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
+import 'package:myapp/mainpage.dart';
 import 'package:myapp/onboarding_screen.dart';
 import 'package:myapp/welcome.dart';
 
@@ -17,7 +20,6 @@ import 'package:flutter_background_service/flutter_background_service.dart';
 // function to initialize the background service
 Future<void> initializeService() async {
   final service = FlutterBackgroundService();
-
   await service.configure(
     iosConfiguration: IosConfiguration(),
     androidConfiguration: AndroidConfiguration(
@@ -30,32 +32,52 @@ Future<void> initializeService() async {
 
 @pragma('vm:entry-point')
 void onStart(ServiceInstance service) async {
-  DartPluginRegistrant.ensureInitialized();
-  // final FirebaseAuth _auth = FirebaseAuth.instance;
+  //DartPluginRegistrant.ensureInitialized();
+  //await Firebase.initializeApp(); // Ensure Firebase is initialized here as well
   final storage = const FlutterSecureStorage();
   final plugin = EasySmsReceiver.instance;
-
+  print("Service started");
   plugin.listenIncomingSms(
     onNewMessage: (message) async {
+      DartPluginRegistrant.ensureInitialized();
+      await Firebase.initializeApp();
       Map<String, String> allValues = await storage.readAll();
 
       print(allValues["tokken"]);
       if (allValues["tokken"] != null) {
-        print("jishnu true");
-        print("You have new message:");
-        print("::::::Message Address: ${message.address}");
-        print("::::::Message body: ${message.body}");
+        print("tokken true");
+        if (message.body!.contains("credited")) {
+          String formattedDate =
+              DateFormat('dd-MM-yyyy').format(DateTime.now());
+          RegExp regExp = RegExp(r'Rs\.(\d+)');
+          Match? match = regExp.firstMatch(message.body!);
+          if (match != null) {
+            // Extract the matched string
+            String amount = match.group(1)!;
+            var transaction = {
+              "amount": amount,
+              "date": formattedDate,
+              "type": "credited",
+              "user": allValues["tokken"]
+            };
+            print(transaction);
+            try {
+              await FirebaseFirestore.instance
+                  .collection('transactions')
+                  .add(transaction);
+              print('Transaction added successfully');
+            } catch (e) {
+              print('Failed to add transaction: $e');
+            }
+          } else {
+            print("No match found in the message body.");
+          }
+        } else {
+          print("Message does not contain 'credited'.");
+        }
+      } else {
+        print("Token is null.");
       }
-
-      // do something
-
-      // for example: show notification
-      // if (service is AndroidServiceInstance) {
-      //   service.setForegroundNotificationInfo(
-      //     title: message.address ?? "address",
-      //     content: message.body ?? "body",
-      //   );
-      // }
     },
   );
 }
@@ -63,9 +85,7 @@ void onStart(ServiceInstance service) async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp();
 // request the SMS permission, then initialize the background service
   Permission.sms.request().then((status) {
     if (status.isGranted) initializeService();
@@ -125,46 +145,11 @@ class MyApp extends StatelessWidget {
       routes: {
         '/registration': (context) => RegistrationPage(),
         '/login': (context) => LoginPage(),
+        '/welcome': (context) => MainPage(),
       },
       themeMode:
           ThemeMode.light, // Automatically switches based on system settings
       home: OnboardingScreen(),
-    );
-  }
-}
-
-class HomePage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Home Page'),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Welcome to the custom-themed app!',
-              style: Theme.of(context).textTheme.displayLarge,
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {},
-              child: Text('Click Me'),
-            ),
-            SizedBox(height: 20),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: 'Enter something',
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
