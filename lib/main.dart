@@ -42,7 +42,7 @@ void onStart(ServiceInstance service) async {
       DartPluginRegistrant.ensureInitialized();
       await Firebase.initializeApp();
       Map<String, String> allValues = await storage.readAll();
-
+      print("tokken");
       print(allValues["tokken"]);
       if (allValues["tokken"] != null) {
         print("tokken true");
