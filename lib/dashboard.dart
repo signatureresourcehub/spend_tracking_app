@@ -19,13 +19,13 @@ class _DashBoardState extends State<DashBoard> {
   String _message = "";
   String _userName = "Loading...";
   double _creditedAmount = 0.0;
-  void initState() {
-// TODO: implement initState
-    super.initState();
+  double _debitedAmount = 0.0;
+  List<Map<String, dynamic>> _recentTransactions = [];
 
-    // startSmsReceiver();
-    _fetchUserName();
-    _fetchCreditedAmount();
+  @override
+  void initState() {
+    super.initState();
+    _refreshPage();
   }
 
   Future<void> _fetchCreditedAmount() async {
@@ -54,6 +54,32 @@ class _DashBoardState extends State<DashBoard> {
     }
   }
 
+  Future<void> _fetchDebitAmount() async {
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        String formattedDate = DateFormat('dd-MM-yyyy').format(DateTime.now());
+        QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+            .collection('transactions')
+            .where('user', isEqualTo: user.uid)
+            .where('date', isEqualTo: formattedDate)
+            .where('type', isEqualTo: 'debited')
+            .get();
+
+        double totalAmount = 0.0;
+        for (var doc in querySnapshot.docs) {
+          totalAmount += double.parse(doc['amount']);
+        }
+
+        setState(() {
+          _debitedAmount = totalAmount;
+        });
+      }
+    } catch (e) {
+      print("Error fetching debited amount: $e");
+    }
+  }
+
   Future<void> _fetchUserName() async {
     try {
       User? user = FirebaseAuth.instance.currentUser;
@@ -77,6 +103,39 @@ class _DashBoardState extends State<DashBoard> {
     }
   }
 
+  Future<void> _fetchRecentTransactions() async {
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+            .collection('transactions')
+            .where('user', isEqualTo: user.uid)
+            .orderBy('date', descending: true)
+            .limit(3)
+            .get();
+
+        List<Map<String, dynamic>> transactions = [];
+        for (var doc in querySnapshot.docs) {
+          transactions.add(doc.data() as Map<String, dynamic>);
+        }
+
+        setState(() {
+          _recentTransactions = transactions;
+        });
+      }
+    } catch (e) {
+      print("Error fetching recent transactions: $e");
+    }
+  }
+
+  Future<void> _refreshPage() async {
+    print("Refreshing page...");
+    await _fetchUserName();
+    await _fetchCreditedAmount();
+    await _fetchDebitAmount();
+    await _fetchRecentTransactions();
+  }
+
   logout() async {
     await FirebaseAuth.instance.signOut();
     await GoogleSignIn().signOut();
@@ -89,23 +148,13 @@ class _DashBoardState extends State<DashBoard> {
     );
   }
 
-  Future<void> _refreshPage() async {
-    print("Refreshing page...");
-    await _fetchUserName();
-    await _fetchCreditedAmount();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(
-      //   title: Text("Dashboard"),
-      // ),
       body: RefreshIndicator(
         onRefresh: _refreshPage,
         child: ListView(
           children: [
-            // SizedBox(height: 50),
             Container(
               padding: EdgeInsets.all(16),
               child: Row(
@@ -116,7 +165,7 @@ class _DashBoardState extends State<DashBoard> {
                       Icons.account_circle,
                       size: 40,
                       color: Colors.white,
-                    ), // Display the first letter of the user's name
+                    ),
                   ),
                   SizedBox(width: 8),
                   Text("Hi,",
@@ -124,13 +173,11 @@ class _DashBoardState extends State<DashBoard> {
                         fontSize: 16,
                       )),
                   Text(_userName,
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16)), // Display the user's name
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 ],
               ),
             ),
-            // SizedBox(height: 20),
             Container(
               padding: EdgeInsets.all(16),
               alignment: Alignment.topLeft,
@@ -150,9 +197,8 @@ class _DashBoardState extends State<DashBoard> {
               ),
               margin: EdgeInsets.all(16),
               child: Card(
-                color:
-                    Colors.transparent, // Make the card background transparent
-                elevation: 0, // Remove card shadow
+                color: Colors.transparent,
+                elevation: 0,
                 child: Padding(
                   padding: EdgeInsets.all(16),
                   child: Row(
@@ -167,7 +213,7 @@ class _DashBoardState extends State<DashBoard> {
                             ),
                           ),
                           Text(
-                            "\₹500",
+                            "\₹$_debitedAmount",
                             style: TextStyle(
                                 fontSize: 20, fontWeight: FontWeight.bold),
                           ),
@@ -191,14 +237,35 @@ class _DashBoardState extends State<DashBoard> {
                 ),
               ),
             ),
-            // Text("Latest Received SMS: $_message"),
-            // Text('EasySmsReceiver Status: $_easySmsReceiverStatus\n'),
             Container(
-              child: ElevatedButton(
-                child: Text("Logout"),
-                onPressed: logout,
+              padding: EdgeInsets.all(16),
+              alignment: Alignment.topLeft,
+              child: Text(
+                "Recent Transactions:",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),
+            if (_recentTransactions.isNotEmpty)
+              ..._recentTransactions.map((transaction) {
+                return ListTile(
+                  title: Text('Amount: ${transaction['amount']}'),
+                  subtitle: Text('Date: ${transaction['date']}'),
+                  trailing: Icon(
+                    transaction['type'] == 'debited'
+                        ? Icons.trending_down
+                        : Icons.trending_down,
+                    color: transaction['type'] == 'debited'
+                        ? Colors.red
+                        : Colors.green,
+                  ),
+                );
+              }).toList(),
+            // Container(
+            //   child: ElevatedButton(
+            //     child: Text("Logout"),
+            //     onPressed: logout,
+            //   ),
+            // ),
           ],
         ),
       ),

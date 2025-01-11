@@ -1,4 +1,5 @@
 import 'dart:ui';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:myapp/mainpage.dart';
@@ -72,8 +73,32 @@ void onStart(ServiceInstance service) async {
           } else {
             print("No match found in the message body.");
           }
-        } else {
-          print("Message does not contain 'credited'.");
+        } else if (message.body!.contains("debited")) {
+          String formattedDate =
+              DateFormat('dd-MM-yyyy').format(DateTime.now());
+          RegExp regExp = RegExp(r"debited by (\d+\.\d+)");
+          Match? match = regExp.firstMatch(message.body!);
+
+          if (match != null) {
+            String amount = match.group(1)!;
+            var transaction = {
+              "amount": amount,
+              "date": formattedDate,
+              "type": "debited",
+              "user": allValues["tokken"]
+            };
+            print(transaction);
+            try {
+              await FirebaseFirestore.instance
+                  .collection('transactions')
+                  .add(transaction);
+              print('Transaction added successfully');
+            } catch (e) {
+              print('Failed to add transaction: $e');
+            }
+          } else {
+            print("No amount found");
+          }
         }
       } else {
         print("Token is null.");
