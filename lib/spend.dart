@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 class SpendPage extends StatefulWidget {
   const SpendPage({super.key});
@@ -15,29 +16,31 @@ class _SpendPageState extends State<SpendPage> {
   DateTime? _selectedDate;
   double _totalSpent = 0.0;
   List<Map<String, dynamic>> _transactions = [];
+  Map<String, double> _spendData = {};
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Spend Page'),
+      ),
       body: Column(
         children: [
-          Container(
-            child: Row(
-              children: [
-                IconButton(
-                  icon: Icon(
-                    Icons.calendar_today,
-                    size: 40,
-                    color: Colors.blue,
-                  ),
-                  onPressed: () => _showDateSelectionDialog(context),
+          Row(
+            children: [
+              IconButton(
+                icon: Icon(
+                  Icons.calendar_today,
+                  size: 40,
+                  color: Colors.blue,
                 ),
-                Text(
-                  'Select date or date range',
-                  style: TextStyle(fontSize: 20),
-                ),
-              ],
-            ),
+                onPressed: () => _showDateSelectionDialog(context),
+              ),
+              Text(
+                'Select date or date range',
+                style: TextStyle(fontSize: 20),
+              ),
+            ],
           ),
           if (_selectedDateRange != null)
             Container(
@@ -49,7 +52,6 @@ class _SpendPageState extends State<SpendPage> {
                     fontSize: 18,
                     color: Colors.red,
                     fontWeight: FontWeight.bold),
-                //textAlign: TextAlign.left,
               ),
             ),
           if (_selectedDate != null)
@@ -64,15 +66,6 @@ class _SpendPageState extends State<SpendPage> {
                     fontWeight: FontWeight.bold),
               ),
             ),
-          if (_transactions.isEmpty)
-            Expanded(
-              child: Center(
-                child: Text(
-                  'No spend found',
-                  style: TextStyle(fontSize: 20),
-                ),
-              ),
-            ),
           if (_transactions.isNotEmpty)
             Expanded(
               child: ListView.builder(
@@ -83,7 +76,7 @@ class _SpendPageState extends State<SpendPage> {
                     padding: EdgeInsets.all(8),
                     child: ListTile(
                       trailing: Icon(
-                        Icons.trending_down,
+                        Icons.money_off,
                         color: Colors.red,
                       ),
                       tileColor: Colors.grey[300],
@@ -97,21 +90,20 @@ class _SpendPageState extends State<SpendPage> {
                 },
               ),
             ),
-          if (_transactions.isNotEmpty)
-            Align(
-              alignment: Alignment.topLeft,
-              child: Container(
-                padding: EdgeInsets.all(16),
-                // color: Colors.white,
-                child: Text(
-                  'Total Spent: ₹$_totalSpent',
-                  style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.red),
+          if (_spendData.isNotEmpty)
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: PieChart(
+                  PieChartData(
+                    sections: _getPieChartSections(),
+                    centerSpaceRadius: 40,
+                    sectionsSpace: 2,
+                  ),
                 ),
               ),
             ),
+          Text('Total Spent: $_totalSpent'),
         ],
       ),
     );
@@ -233,18 +225,46 @@ class _SpendPageState extends State<SpendPage> {
 
         double totalAmount = 0.0;
         List<Map<String, dynamic>> transactions = [];
+        Map<String, double> spendData = {};
         for (var doc in querySnapshot.docs) {
-          totalAmount += double.parse(doc['amount']);
+          double amount = double.parse(doc['amount']);
+          totalAmount += amount;
           transactions.add(doc.data() as Map<String, dynamic>);
+          String date = doc['date'];
+          if (spendData.containsKey(date)) {
+            spendData[date] = spendData[date]! + amount;
+          } else {
+            spendData[date] = amount;
+          }
         }
 
         setState(() {
           _totalSpent = totalAmount;
           _transactions = transactions;
+          _spendData = spendData;
         });
+
+        // Debug prints to verify data
+        print("Total Spent: $_totalSpent");
+        print("Transactions: $_transactions");
+        print("Spend Data: $_spendData");
       }
     } catch (e) {
       print("Error fetching debited transactions: $e");
     }
+  }
+
+  List<PieChartSectionData> _getPieChartSections() {
+    return _spendData.entries.map((entry) {
+      return PieChartSectionData(
+        color: Colors.primaries[_spendData.keys.toList().indexOf(entry.key) %
+            Colors.primaries.length],
+        value: entry.value,
+        title: '${entry.key}\n₹${entry.value.toStringAsFixed(2)}',
+        radius: 50,
+        titleStyle: TextStyle(
+            fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+      );
+    }).toList();
   }
 }
