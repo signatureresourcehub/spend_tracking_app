@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:myapp/collaborators.dart';
 import 'package:myapp/mainpage.dart';
 import 'package:myapp/onboarding_screen.dart';
 import 'package:myapp/welcome.dart';
@@ -171,6 +172,7 @@ class MyApp extends StatelessWidget {
         '/registration': (context) => RegistrationPage(),
         '/login': (context) => LoginPage(),
         '/welcome': (context) => MainPage(),
+        '/collaborators': (context) => CollaboratorsPage(),
       },
       themeMode:
           ThemeMode.light, // Automatically switches based on system settings

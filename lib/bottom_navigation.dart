@@ -22,7 +22,7 @@ class CustomerBottomNav extends StatelessWidget {
             },
             items: const [
               BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-              BottomNavigationBarItem(icon: Icon(Icons.money), label: 'Spend'),
+              BottomNavigationBarItem(icon: Icon(Icons.money), label: 'Spent'),
               BottomNavigationBarItem(
                   icon: Icon(Icons.account_balance), label: 'Transactions'),
               BottomNavigationBarItem(

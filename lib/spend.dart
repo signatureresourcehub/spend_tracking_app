@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
+import 'package:pie_chart/pie_chart.dart';
 
 class SpendPage extends StatefulWidget {
   const SpendPage({super.key});
@@ -15,14 +16,15 @@ class _SpendPageState extends State<SpendPage> {
   DateTime? _selectedDate;
   double _totalSpent = 0.0;
   List<Map<String, dynamic>> _transactions = [];
+  Map<String, double> _spendData = {};
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          Container(
-            child: Row(
+      body: Center(
+        child: ListView(
+          children: [
+            Row(
               children: [
                 IconButton(
                   icon: Icon(
@@ -38,81 +40,98 @@ class _SpendPageState extends State<SpendPage> {
                 ),
               ],
             ),
-          ),
-          if (_selectedDateRange != null)
-            Container(
-              padding: EdgeInsets.only(left: 10),
-              alignment: Alignment.topLeft,
-              child: Text(
-                ' ${DateFormat('dd/MM/yyyy').format(_selectedDateRange!.start)} - ${DateFormat('dd/MM/yyyy').format(_selectedDateRange!.end)}',
-                style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.red,
-                    fontWeight: FontWeight.bold),
-                //textAlign: TextAlign.left,
-              ),
-            ),
-          if (_selectedDate != null)
-            Container(
-              padding: EdgeInsets.only(left: 10),
-              alignment: Alignment.topLeft,
-              child: Text(
-                '${DateFormat('dd/MM/yyyy').format(_selectedDate!)}',
-                style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.red,
-                    fontWeight: FontWeight.bold),
-              ),
-            ),
-          if (_transactions.isEmpty)
-            Expanded(
-              child: Center(
+            if (_selectedDateRange != null)
+              Container(
+                padding: EdgeInsets.only(left: 10),
+                alignment: Alignment.topLeft,
                 child: Text(
-                  'No spend found',
-                  style: TextStyle(fontSize: 20),
-                ),
-              ),
-            ),
-          if (_transactions.isNotEmpty)
-            Expanded(
-              child: ListView.builder(
-                itemCount: _transactions.length,
-                itemBuilder: (context, index) {
-                  final transaction = _transactions[index];
-                  return Container(
-                    padding: EdgeInsets.all(8),
-                    child: ListTile(
-                      trailing: Icon(
-                        Icons.trending_down,
-                        color: Colors.red,
-                      ),
-                      tileColor: Colors.grey[300],
-                      title: Text(
-                        '₹${transaction['amount']}',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Text('Date: ${transaction['date']}'),
-                    ),
-                  );
-                },
-              ),
-            ),
-          if (_transactions.isNotEmpty)
-            Align(
-              alignment: Alignment.topLeft,
-              child: Container(
-                padding: EdgeInsets.all(16),
-                // color: Colors.white,
-                child: Text(
-                  'Total Spent: ₹$_totalSpent',
+                  ' ${DateFormat('dd/MM/yyyy').format(_selectedDateRange!.start)} - ${DateFormat('dd/MM/yyyy').format(_selectedDateRange!.end)}',
                   style: TextStyle(
                       fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.red),
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold),
                 ),
               ),
-            ),
-        ],
+            if (_selectedDate != null)
+              Container(
+                padding: EdgeInsets.only(left: 10),
+                alignment: Alignment.topLeft,
+                child: Text(
+                  '${DateFormat('dd/MM/yyyy').format(_selectedDate!)}',
+                  style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold),
+                ),
+              ),
+            if (_spendData.isNotEmpty)
+              Container(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: PieChart(
+                    dataMap: _spendData,
+                    chartType: ChartType.ring,
+                    chartRadius: MediaQuery.of(context).size.width / 2,
+                    ringStrokeWidth: 32,
+                    animationDuration: Duration(milliseconds: 800),
+                    chartValuesOptions: ChartValuesOptions(
+                        showChartValuesInPercentage: false,
+                        showChartValuesOutside: false,
+                        decimalPlaces: 1,
+                        showChartValues: true),
+                    legendOptions: LegendOptions(
+                      showLegendsInRow: false,
+                      legendPosition: LegendPosition.right,
+                      showLegends: true,
+                      legendShape: BoxShape.circle,
+                      legendTextStyle: TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            if (_transactions.isNotEmpty)
+              Container(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  itemCount: _transactions.length,
+                  itemBuilder: (context, index) {
+                    final transaction = _transactions[index];
+                    return Container(
+                      padding: EdgeInsets.all(8),
+                      child: ListTile(
+                        trailing: Icon(
+                          Icons.trending_down,
+                          color: Colors.red,
+                        ),
+                        title: Text(
+                          '₹${transaction['amount']}',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text('Date: ${transaction['date']}'),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            if (_transactions.isNotEmpty)
+              Container(
+                  padding: EdgeInsets.all(20),
+                  child: Text(
+                    'Total Spent: ₹$_totalSpent',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  )),
+            if (_transactions.isEmpty)
+              Center(
+                child: Text(
+                  'No transactions found',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -233,15 +252,29 @@ class _SpendPageState extends State<SpendPage> {
 
         double totalAmount = 0.0;
         List<Map<String, dynamic>> transactions = [];
+        Map<String, double> spendData = {};
         for (var doc in querySnapshot.docs) {
-          totalAmount += double.parse(doc['amount']);
+          double amount = double.parse(doc['amount']);
+          totalAmount += amount;
           transactions.add(doc.data() as Map<String, dynamic>);
+          String date = doc['date'];
+          if (spendData.containsKey(date)) {
+            spendData[date] = spendData[date]! + amount;
+          } else {
+            spendData[date] = amount;
+          }
         }
 
         setState(() {
           _totalSpent = totalAmount;
           _transactions = transactions;
+          _spendData = spendData;
         });
+
+        // Debug prints to verify data
+        print("Total Spent: $_totalSpent");
+        print("Transactions: $_transactions");
+        print("Spend Data: $_spendData");
       }
     } catch (e) {
       print("Error fetching debited transactions: $e");

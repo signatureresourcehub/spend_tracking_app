@@ -6,7 +6,7 @@ import 'package:myapp/spend.dart';
 import 'package:myapp/transactions.dart';
 
 final pages = [DashBoard(), SpendPage(), TransactionPage(), AccountPage()];
-final tites = ["Home", "Spend", "Transactions", "Account"];
+final tites = ["Home", "Spent", "Transactions", "Account"];
 
 class MainPage extends StatelessWidget {
   const MainPage({super.key});

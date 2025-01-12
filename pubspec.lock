@@ -113,6 +113,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.10"
+  easy_pie_chart:
+    dependency: "direct main"
+    description:
+      name: easy_pie_chart
+      sha256: "1efa25a5e331cbb6cfc53421ef4db6fcbbb5598b358a9b128931f8b805f71a95"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.1"
   easy_sms_receiver:
     dependency: "direct main"
     description:
@@ -592,6 +600,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.0.2"
+  pie_chart:
+    dependency: "direct main"
+    description:
+      name: pie_chart
+      sha256: "58e6a46999ac938bfa1c3e5be414d6e149f037647197dca03ba3614324c12c82"
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.4.0"
   platform:
     dependency: transitive
     description:

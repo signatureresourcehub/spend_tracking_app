@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
+import 'package:pie_chart/pie_chart.dart';
 
 class TransactionPage extends StatefulWidget {
   const TransactionPage({super.key});
@@ -13,8 +14,10 @@ class TransactionPage extends StatefulWidget {
 class _TransactionPageState extends State<TransactionPage> {
   DateTimeRange? _selectedDateRange;
   DateTime? _selectedDate;
+  double _totalDebited = 0.0;
+  double _totalCredited = 0.0;
   List<Map<String, dynamic>> _transactions = [];
-  double _totalSpent = 0.0;
+  Map<String, double> _transactionData = {};
 
   @override
   void initState() {
@@ -27,7 +30,7 @@ class _TransactionPageState extends State<TransactionPage> {
     return Scaffold(
       body: Stack(
         children: [
-          Column(
+          ListView(
             children: [
               Row(
                 children: [
@@ -51,25 +54,56 @@ class _TransactionPageState extends State<TransactionPage> {
                   alignment: Alignment.topLeft,
                   child: Text(
                     'Selected Range: ${DateFormat('dd/MM/yyyy').format(_selectedDateRange!.start)} - ${DateFormat('dd/MM/yyyy').format(_selectedDateRange!.end)}',
-                    style: TextStyle(fontSize: 18),
+                    style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold),
                   ),
                 ),
               if (_selectedDate != null)
-                Text(
-                  'Selected Date: ${DateFormat('dd/MM/yyyy').format(_selectedDate!)}',
+                Container(
+                  padding: EdgeInsets.only(left: 20),
+                  alignment: Alignment.topLeft,
+                  child: Text(
+                    'Selected Date: ${DateFormat('dd/MM/yyyy').format(_selectedDate!)}',
+                    style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold),
+                  ),
                 ),
-              if (_transactions.isEmpty)
-                Expanded(
-                  child: Center(
-                    child: Text(
-                      'No spend found',
-                      style: TextStyle(fontSize: 20),
+              if (_transactions.isNotEmpty)
+                Container(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: PieChart(
+                      dataMap: _transactionData,
+                      chartType: ChartType.ring,
+                      chartRadius: MediaQuery.of(context).size.width / 2,
+                      ringStrokeWidth: 32,
+                      animationDuration: Duration(milliseconds: 800),
+                      chartValuesOptions: ChartValuesOptions(
+                          showChartValuesInPercentage: false,
+                          showChartValuesOutside: false,
+                          decimalPlaces: 1,
+                          showChartValues: true),
+                      legendOptions: LegendOptions(
+                        showLegendsInRow: false,
+                        legendPosition: LegendPosition.right,
+                        showLegends: true,
+                        legendShape: BoxShape.circle,
+                        legendTextStyle: TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ),
                 ),
               if (_transactions.isNotEmpty)
-                Expanded(
+                Container(
                   child: ListView.builder(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
                     itemCount: _transactions.length,
                     itemBuilder: (context, index) {
                       final transaction = _transactions[index];
@@ -84,7 +118,6 @@ class _TransactionPageState extends State<TransactionPage> {
                                 ? Colors.red
                                 : Colors.green,
                           ),
-                          tileColor: Colors.grey[300],
                           title: Text(
                             '₹${transaction['amount']}',
                             style: TextStyle(fontWeight: FontWeight.bold),
@@ -95,19 +128,15 @@ class _TransactionPageState extends State<TransactionPage> {
                     },
                   ),
                 ),
+              if (_transactions.isEmpty)
+                Center(
+                  child: Text(
+                    'No transactions found',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                ),
             ],
           ),
-          // Align(
-          //   alignment: Alignment.bottomCenter,
-          //   child: Container(
-          //     padding: EdgeInsets.all(16),
-          //     color: Colors.white,
-          //     child: Text(
-          //       'Total Spent: $_totalSpent',
-          //       style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          //     ),
-          //   ),
-          // ),
         ],
       ),
     );
@@ -225,17 +254,34 @@ class _TransactionPageState extends State<TransactionPage> {
               .get();
         }
 
-        double totalAmount = 0.0;
+        double totalDebited = 0.0;
+        double totalCredited = 0.0;
         List<Map<String, dynamic>> transactions = [];
         for (var doc in querySnapshot.docs) {
-          totalAmount += double.parse(doc['amount']);
+          double amount = double.parse(doc['amount']);
           transactions.add(doc.data() as Map<String, dynamic>);
+          if (doc['type'] == 'debited') {
+            totalDebited += amount;
+          } else if (doc['type'] == 'credited') {
+            totalCredited += amount;
+          }
         }
 
         setState(() {
-          _totalSpent = totalAmount;
+          _totalDebited = totalDebited;
+          _totalCredited = totalCredited;
           _transactions = transactions;
+          _transactionData = {
+            'Debited': _totalDebited,
+            'Credited': _totalCredited,
+          };
         });
+
+        // Debug prints to verify data
+        print("Total Debited: $_totalDebited");
+        print("Total Credited: $_totalCredited");
+        print("Transactions: $_transactions");
+        print("Transaction Data: $_transactionData");
       }
     } catch (e) {
       print("Error fetching transactions: $e");
@@ -251,17 +297,34 @@ class _TransactionPageState extends State<TransactionPage> {
             .where('user', isEqualTo: user.uid)
             .get();
 
-        double totalAmount = 0.0;
+        double totalDebited = 0.0;
+        double totalCredited = 0.0;
         List<Map<String, dynamic>> transactions = [];
         for (var doc in querySnapshot.docs) {
-          totalAmount += double.parse(doc['amount']);
+          double amount = double.parse(doc['amount']);
           transactions.add(doc.data() as Map<String, dynamic>);
+          if (doc['type'] == 'debited') {
+            totalDebited += amount;
+          } else if (doc['type'] == 'credited') {
+            totalCredited += amount;
+          }
         }
 
         setState(() {
-          _totalSpent = totalAmount;
+          _totalDebited = totalDebited;
+          _totalCredited = totalCredited;
           _transactions = transactions;
+          _transactionData = {
+            'Debited': _totalDebited,
+            'Credited': _totalCredited,
+          };
         });
+
+        // Debug prints to verify data
+        print("Total Debited: $_totalDebited");
+        print("Total Credited: $_totalCredited");
+        print("Transactions: $_transactions");
+        print("Transaction Data: $_transactionData");
       }
     } catch (e) {
       print("Error fetching transactions: $e");
