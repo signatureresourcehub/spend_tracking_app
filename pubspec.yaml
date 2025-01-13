@@ -47,6 +47,7 @@ dependencies:
   fl_chart: ^0.70.1
   easy_pie_chart: ^1.0.1
   pie_chart: ^5.0.0 
+  share_plus: ^10.1.3
 
 
 

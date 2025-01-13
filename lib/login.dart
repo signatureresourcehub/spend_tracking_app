@@ -7,6 +7,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:myapp/dashboard.dart';
 import 'package:myapp/mainpage.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -14,9 +15,6 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  // final plugin = EasySmsReceiver.instance;
-  // final EasySmsReceiver easySmsReceiver = EasySmsReceiver.instance;
-  // String _easySmsReceiverStatus = "Undefined";
   String _message = "";
   final storage = const FlutterSecureStorage();
 
@@ -25,12 +23,14 @@ class _LoginPageState extends State<LoginPage> {
   final _passwordController = TextEditingController();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   bool issigned = false;
+
   getUser() async {
     User? firebaseUser = FirebaseAuth.instance.currentUser;
     await firebaseUser?.reload();
     if (firebaseUser != null) {
       print(firebaseUser.uid);
       await storage.write(key: "tokken", value: firebaseUser.uid);
+      await storage.write(key: "email", value: firebaseUser.email);
       setState(() {
         issigned = true;
         Navigator.pushAndRemoveUntil(
@@ -42,23 +42,9 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  // Future<bool> requestSmsPermission() async {
-  //   return await Permission.sms.request().then(
-  //     (PermissionStatus pStatus) {
-  //       if (pStatus.isPermanentlyDenied) {
-  //         // "You must allow sms permission"
-  //         openAppSettings();
-  //       }
-  //       return pStatus.isGranted;
-  //     },
-  //   );
-  // }
-
   void initState() {
-// TODO: implement initState
     super.initState();
     getUser();
-    // startSmsReceiver();
   }
 
   @override
@@ -102,8 +88,101 @@ class _LoginPageState extends State<LoginPage> {
     );
 
     // Once signed in, return the UserCredential
-    await FirebaseAuth.instance.signInWithCredential(credential);
-    getUser();
+    final UserCredential userCredential =
+        await FirebaseAuth.instance.signInWithCredential(credential);
+    final User? user = userCredential.user;
+
+    if (user != null) {
+      // Check if the user is already in the users collection
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      if (userDoc.exists) {
+        // User already exists, proceed to the main page
+        getUser();
+      } else {
+        // Show the dialog to enter user details
+        await _showUserInfoDialog(user);
+      }
+    }
+  }
+
+  Future<void> _showUserInfoDialog(User user) async {
+    final TextEditingController nameController = TextEditingController();
+    final TextEditingController emailController =
+        TextEditingController(text: user.email);
+    final TextEditingController phoneController = TextEditingController();
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Enter your details'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                TextField(
+                  controller: nameController,
+                  decoration: InputDecoration(labelText: 'Name'),
+                ),
+                SizedBox(height: 16),
+                TextField(
+                  controller: emailController,
+                  decoration: InputDecoration(labelText: 'Email'),
+                  readOnly: true,
+                ),
+                SizedBox(height: 16),
+                TextField(
+                  controller: phoneController,
+                  decoration: InputDecoration(labelText: 'Phone Number'),
+                  keyboardType: TextInputType.phone,
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Save'),
+              onPressed: () async {
+                final String name = nameController.text.trim();
+                final String email = emailController.text.trim();
+                final String phone = phoneController.text.trim();
+
+                if (name.isNotEmpty && email.isNotEmpty && phone.isNotEmpty) {
+                  // Save the user information
+                  await _saveUserInfo(user.uid, name, email, phone);
+                  Navigator.of(context).pop();
+                  getUser();
+                } else {
+                  // Show an error message if any field is empty
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Please fill in all fields')),
+                  );
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _saveUserInfo(
+      String uid, String name, String email, String phone) async {
+    // Save the user information to Firestore or any other storage
+    await FirebaseFirestore.instance.collection('users').doc(uid).set({
+      'name': name,
+      'email': email,
+      'phone': phone,
+    });
   }
 
   logIn() async {
@@ -114,12 +193,6 @@ class _LoginPageState extends State<LoginPage> {
                 email: _emailController.text,
                 password: _passwordController.text);
         getUser();
-
-        // Navigator.pushAndRemoveUntil(
-        //   context,
-        //   MaterialPageRoute(builder: (context) => MainPage()),
-        //   (Route<dynamic> route) => false, // Removes all previous routes
-        // );
       } on FirebaseAuthException catch (e) {
         showError(e.message.toString());
         print(e.code);
@@ -134,26 +207,17 @@ class _LoginPageState extends State<LoginPage> {
 
   void _login() {
     if (_formKey.currentState!.validate()) {
-      // ScaffoldMessenger.of(context).showSnackBar(
-      //   SnackBar(content: Text('Logging in...')),
-      // );
       logIn();
     }
   }
 
   void _loginWithGoogle() {
-    // ScaffoldMessenger.of(context).showSnackBar(
-    //   SnackBar(content: Text('Google login clicked!')),
-    // );
     signInWithGoogle();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(
-      //   title: Text('Login'),
-      // ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(

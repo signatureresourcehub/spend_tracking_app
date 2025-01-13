@@ -60,7 +60,8 @@ void onStart(ServiceInstance service) async {
               "amount": amount,
               "date": formattedDate,
               "type": "credited",
-              "user": allValues["tokken"]
+              "user": allValues["tokken"],
+              "email": allValues["email"]
             };
             print(transaction);
             try {
@@ -86,7 +87,8 @@ void onStart(ServiceInstance service) async {
               "amount": amount,
               "date": formattedDate,
               "type": "debited",
-              "user": allValues["tokken"]
+              "user": allValues["tokken"],
+              "email": allValues["email"]
             };
             print(transaction);
             try {
