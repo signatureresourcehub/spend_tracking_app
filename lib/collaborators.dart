@@ -17,7 +17,8 @@ class _CollaboratorsPageState extends State<CollaboratorsPage> {
   final TextEditingController _codeController = TextEditingController();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  List<String> _collaboratedUsers = [];
+  List<String> _collaboratedUserNames = [];
+  Map<String, String> _userNameToEmailMap = {};
 
   @override
   void initState() {
@@ -76,11 +77,28 @@ class _CollaboratorsPageState extends State<CollaboratorsPage> {
         .where('user1', isEqualTo: userEmail)
         .get();
 
-    final List<String> collaboratedUsers =
+    final List<String> collaboratedUserEmails =
         querySnapshot.docs.map((doc) => doc['user2'] as String).toList();
 
+    // Fetch names from users collection
+    final List<String> collaboratedUserNames = [];
+    final Map<String, String> userNameToEmailMap = {};
+    for (String email in collaboratedUserEmails) {
+      final userDoc = await _firestore
+          .collection('users')
+          .where('email', isEqualTo: email)
+          .get()
+          .then((value) => value.docs.first);
+      if (userDoc.exists) {
+        final userName = userDoc['name'] as String;
+        collaboratedUserNames.add(userName);
+        userNameToEmailMap[userName] = email;
+      }
+    }
+
     setState(() {
-      _collaboratedUsers = collaboratedUsers;
+      _collaboratedUserNames = collaboratedUserNames;
+      _userNameToEmailMap = userNameToEmailMap;
     });
   }
 
@@ -239,15 +257,27 @@ class _CollaboratorsPageState extends State<CollaboratorsPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    'Your Collaboration Code: $_collaborationCode',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: _shareCollaborationCode,
-                    child: Text('Share Collaboration Code'),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Collaboration Code: ',
+                        style: TextStyle(fontSize: 18),
+                      ),
+                      Text(
+                        _collaborationCode!,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      IconButton(
+                          onPressed: _shareCollaborationCode,
+                          icon: Icon(
+                            Icons.share_rounded,
+                            color: Colors.blue,
+                          )),
+                    ],
                   ),
                   SizedBox(height: 20),
                   TextField(
@@ -257,10 +287,12 @@ class _CollaboratorsPageState extends State<CollaboratorsPage> {
                       border: OutlineInputBorder(),
                     ),
                   ),
-                  SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: _submitCollaborationCode,
-                    child: Text('Submit Collaboration Code'),
+                  SizedBox(
+                    width: 20,
+                    child: ElevatedButton(
+                      onPressed: _submitCollaborationCode,
+                      child: Text('Submit'),
+                    ),
                   ),
                   SizedBox(height: 20),
                   Text(
@@ -270,21 +302,30 @@ class _CollaboratorsPageState extends State<CollaboratorsPage> {
                   ListView.builder(
                     shrinkWrap: true,
                     physics: NeverScrollableScrollPhysics(),
-                    itemCount: _collaboratedUsers.length,
+                    itemCount: _collaboratedUserNames.length,
                     itemBuilder: (context, index) {
-                      return ListTile(
-                        title: Text(_collaboratedUsers[index]),
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  CollaboratedTransactionsPage(
-                                collaboratedUserEmail:
-                                    _collaboratedUsers[index],
+                      final userName = _collaboratedUserNames[index];
+                      final userEmail = _userNameToEmailMap[userName];
+                      return Container(
+                        padding: EdgeInsets.only(top: 10, bottom: 10),
+                        child: ListTile(
+                          tileColor: Colors.grey[200],
+                          title: Text(userName),
+                          leading: Icon(
+                            Icons.person,
+                            color: Colors.blue,
+                          ),
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    CollaboratedTransactionsPage(
+                                  collaboratedUserEmail: userEmail!,
+                                ),
                               ),
-                            ),
-                          );
-                        },
+                            );
+                          },
+                        ),
                       );
                     },
                   ),

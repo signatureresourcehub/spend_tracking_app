@@ -6,6 +6,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:myapp/login.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:intl/intl.dart';
+import 'package:myapp/setbudget.dart';
 
 class DashBoard extends StatefulWidget {
   const DashBoard({Key? key}) : super(key: key);
@@ -20,6 +21,7 @@ class _DashBoardState extends State<DashBoard> {
   String _userName = "Loading...";
   double _creditedAmount = 0.0;
   double _debitedAmount = 0.0;
+  double? _budgetAmount;
   List<Map<String, dynamic>> _recentTransactions = [];
 
   @override
@@ -128,12 +130,33 @@ class _DashBoardState extends State<DashBoard> {
     }
   }
 
+  Future<void> _fetchBudget() async {
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        DocumentSnapshot snapshot = await FirebaseFirestore.instance
+            .collection('budget')
+            .doc(user.uid)
+            .get();
+
+        if (snapshot.exists) {
+          setState(() {
+            _budgetAmount = snapshot['amount'];
+          });
+        }
+      }
+    } catch (e) {
+      print("Error fetching budget: $e");
+    }
+  }
+
   Future<void> _refreshPage() async {
     print("Refreshing page...");
     await _fetchUserName();
     await _fetchCreditedAmount();
     await _fetchDebitAmount();
     await _fetchRecentTransactions();
+    await _fetchBudget();
   }
 
   logout() async {
@@ -178,6 +201,18 @@ class _DashBoardState extends State<DashBoard> {
                 ],
               ),
             ),
+            if (_budgetAmount != null && _debitedAmount > _budgetAmount!)
+              Container(
+                padding: EdgeInsets.all(16),
+                alignment: Alignment.topLeft,
+                child: Text(
+                  "Budget exceeded for ${DateFormat('MMMM dd').format(DateTime.now())}",
+                  style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red),
+                ),
+              ),
             Container(
               padding: EdgeInsets.all(16),
               alignment: Alignment.topLeft,
@@ -253,19 +288,29 @@ class _DashBoardState extends State<DashBoard> {
                   trailing: Icon(
                     transaction['type'] == 'debited'
                         ? Icons.trending_down
-                        : Icons.trending_down,
+                        : Icons.trending_up,
                     color: transaction['type'] == 'debited'
                         ? Colors.red
                         : Colors.green,
                   ),
                 );
               }).toList(),
-            // Container(
-            //   child: ElevatedButton(
-            //     child: Text("Logout"),
-            //     onPressed: logout,
-            //   ),
-            // ),
+            Container(
+              padding: EdgeInsets.all(16),
+              child: ListTile(
+                onTap: () {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => SetBudgetPage()));
+                },
+                leading: Text(
+                  "₹",
+                  style: TextStyle(fontSize: 20),
+                ),
+                tileColor: Colors.grey[200],
+                title: Text("Set Budget",
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ),
           ],
         ),
       ),
