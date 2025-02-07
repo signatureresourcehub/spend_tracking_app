@@ -130,7 +130,8 @@ class _CollaboratedTransactionsPageState
                             '₹${transaction['amount']}',
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
-                          subtitle: Text('Date: ${transaction['date']}'),
+                          subtitle: Text(
+                              'Date: ${transaction['date']} at ${transaction['time']}'),
                         ),
                       );
                     },

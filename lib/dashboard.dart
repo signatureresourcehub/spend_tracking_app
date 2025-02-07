@@ -3,6 +3,7 @@ import 'package:easy_sms_receiver/easy_sms_receiver.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:myapp/addtransactions.dart';
 import 'package:myapp/login.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:intl/intl.dart';
@@ -284,7 +285,8 @@ class _DashBoardState extends State<DashBoard> {
               ..._recentTransactions.map((transaction) {
                 return ListTile(
                   title: Text('₹${transaction['amount']}'),
-                  subtitle: Text('${transaction['date']}'),
+                  subtitle:
+                      Text('${transaction['date']} at ${transaction['time']}'),
                   trailing: Icon(
                     transaction['type'] == 'debited'
                         ? Icons.trending_down
@@ -313,6 +315,14 @@ class _DashBoardState extends State<DashBoard> {
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        tooltip: "Add Transaction",
+        onPressed: () {
+          Navigator.of(context)
+              .push(MaterialPageRoute(builder: (context) => AddTransaction()));
+        },
+        child: Icon(Icons.add),
       ),
     );
   }

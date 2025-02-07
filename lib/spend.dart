@@ -110,7 +110,8 @@ class _SpendPageState extends State<SpendPage> {
                           '₹${transaction['amount']}',
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
-                        subtitle: Text('Date: ${transaction['date']}'),
+                        subtitle: Text(
+                            'Date: ${transaction['date']} at ${transaction['time']}'),
                       ),
                     );
                   },

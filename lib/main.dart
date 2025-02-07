@@ -51,6 +51,7 @@ void onStart(ServiceInstance service) async {
         if (message.body!.contains("credited")) {
           String formattedDate =
               DateFormat('dd-MM-yyyy').format(DateTime.now());
+          String formattedTime = DateFormat('hh:mm a').format(DateTime.now());
           RegExp regExp = RegExp(r'Rs\.(\d+)');
           Match? match = regExp.firstMatch(message.body!);
           if (match != null) {
@@ -59,6 +60,7 @@ void onStart(ServiceInstance service) async {
             var transaction = {
               "amount": amount,
               "date": formattedDate,
+              "time": formattedTime,
               "type": "credited",
               "user": allValues["tokken"],
               "email": allValues["email"]
@@ -78,6 +80,7 @@ void onStart(ServiceInstance service) async {
         } else if (message.body!.contains("debited")) {
           String formattedDate =
               DateFormat('dd-MM-yyyy').format(DateTime.now());
+          String formattedTime = DateFormat('hh:mm a').format(DateTime.now());
           RegExp regExp = RegExp(r"debited by (\d+\.\d+)");
           Match? match = regExp.firstMatch(message.body!);
 
@@ -86,6 +89,7 @@ void onStart(ServiceInstance service) async {
             var transaction = {
               "amount": amount,
               "date": formattedDate,
+              "time": formattedTime,
               "type": "debited",
               "user": allValues["tokken"],
               "email": allValues["email"]
