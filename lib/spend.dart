@@ -111,7 +111,7 @@ class _SpendPageState extends State<SpendPage> {
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                         subtitle: Text(
-                            'Date: ${transaction['date']} at ${transaction['time']}'),
+                            'Date: ${transaction['date']} at ${transaction['time']} \n ${transaction['category']}'),
                       ),
                     );
                   },
@@ -254,15 +254,17 @@ class _SpendPageState extends State<SpendPage> {
         double totalAmount = 0.0;
         List<Map<String, dynamic>> transactions = [];
         Map<String, double> spendData = {};
+
         for (var doc in querySnapshot.docs) {
           double amount = double.parse(doc['amount']);
           totalAmount += amount;
           transactions.add(doc.data() as Map<String, dynamic>);
-          String date = doc['date'];
-          if (spendData.containsKey(date)) {
-            spendData[date] = spendData[date]! + amount;
+
+          String category = doc['category'] ?? 'Other';
+          if (spendData.containsKey(category)) {
+            spendData[category] = spendData[category]! + amount;
           } else {
-            spendData[date] = amount;
+            spendData[category] = amount;
           }
         }
 

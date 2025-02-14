@@ -123,7 +123,7 @@ class _TransactionPageState extends State<TransactionPage> {
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                           subtitle: Text(
-                              'Date: ${transaction['date']} at ${transaction['time']}'),
+                              'Date: ${transaction['date']} at ${transaction['time']} \n ${transaction['category']}'),
                         ),
                       );
                     },
@@ -258,13 +258,23 @@ class _TransactionPageState extends State<TransactionPage> {
         double totalDebited = 0.0;
         double totalCredited = 0.0;
         List<Map<String, dynamic>> transactions = [];
+        Map<String, double> categoryData = {};
         for (var doc in querySnapshot.docs) {
           double amount = double.parse(doc['amount']);
+          String category = doc['category'] ?? 'Other';
           transactions.add(doc.data() as Map<String, dynamic>);
+
           if (doc['type'] == 'debited') {
             totalDebited += amount;
           } else if (doc['type'] == 'credited') {
             totalCredited += amount;
+          }
+
+          // Grouping by category
+          if (categoryData.containsKey(category)) {
+            categoryData[category] = categoryData[category]! + amount;
+          } else {
+            categoryData[category] = amount;
           }
         }
 
@@ -272,10 +282,7 @@ class _TransactionPageState extends State<TransactionPage> {
           _totalDebited = totalDebited;
           _totalCredited = totalCredited;
           _transactions = transactions;
-          _transactionData = {
-            'Debited': _totalDebited,
-            'Credited': _totalCredited,
-          };
+          _transactionData = categoryData;
         });
 
         // Debug prints to verify data
@@ -301,13 +308,23 @@ class _TransactionPageState extends State<TransactionPage> {
         double totalDebited = 0.0;
         double totalCredited = 0.0;
         List<Map<String, dynamic>> transactions = [];
+        Map<String, double> categoryData = {};
         for (var doc in querySnapshot.docs) {
           double amount = double.parse(doc['amount']);
+          String category = doc['category'] ?? 'Other';
           transactions.add(doc.data() as Map<String, dynamic>);
+
           if (doc['type'] == 'debited') {
             totalDebited += amount;
           } else if (doc['type'] == 'credited') {
             totalCredited += amount;
+          }
+
+          // Grouping by category
+          if (categoryData.containsKey(category)) {
+            categoryData[category] = categoryData[category]! + amount;
+          } else {
+            categoryData[category] = amount;
           }
         }
 
@@ -315,10 +332,7 @@ class _TransactionPageState extends State<TransactionPage> {
           _totalDebited = totalDebited;
           _totalCredited = totalCredited;
           _transactions = transactions;
-          _transactionData = {
-            'Debited': _totalDebited,
-            'Credited': _totalCredited,
-          };
+          _transactionData = categoryData;
         });
 
         // Debug prints to verify data

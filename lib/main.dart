@@ -63,7 +63,8 @@ void onStart(ServiceInstance service) async {
               "time": formattedTime,
               "type": "credited",
               "user": allValues["tokken"],
-              "email": allValues["email"]
+              "email": allValues["email"],
+              "category": "Personal"
             };
             print(transaction);
             try {
@@ -92,7 +93,8 @@ void onStart(ServiceInstance service) async {
               "time": formattedTime,
               "type": "debited",
               "user": allValues["tokken"],
-              "email": allValues["email"]
+              "email": allValues["email"],
+              "category": "Personal"
             };
             print(transaction);
             try {

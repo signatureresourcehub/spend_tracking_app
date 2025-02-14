@@ -48,9 +48,11 @@ class _CollaboratorsPageState extends State<CollaboratorsPage> {
         .get();
 
     if (querySnapshot.docs.isNotEmpty) {
-      setState(() {
-        _collaborationCode = querySnapshot.docs.first['code'];
-      });
+      if (mounted) {
+        setState(() {
+          _collaborationCode = querySnapshot.docs.first['code'];
+        });
+      }
     } else {
       // Show the collaboration agreement dialog
       bool agreed = await _showCollaborationAgreement();
@@ -95,11 +97,12 @@ class _CollaboratorsPageState extends State<CollaboratorsPage> {
         userNameToEmailMap[userName] = email;
       }
     }
-
-    setState(() {
-      _collaboratedUserNames = collaboratedUserNames;
-      _userNameToEmailMap = userNameToEmailMap;
-    });
+    if (mounted) {
+      setState(() {
+        _collaboratedUserNames = collaboratedUserNames;
+        _userNameToEmailMap = userNameToEmailMap;
+      });
+    }
   }
 
   Future<bool> _showCollaborationAgreement() async {
@@ -243,6 +246,14 @@ class _CollaboratorsPageState extends State<CollaboratorsPage> {
     _fetchCollaboratedUsers();
   }
 
+  void dispose() {
+    // your dispose part
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _checkAndGenerateCollaborationCode());
+    _fetchCollaboratedUsers();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -311,12 +322,14 @@ class _CollaboratorsPageState extends State<CollaboratorsPage> {
                         child: ListTile(
                           tileColor: Colors.grey[200],
                           title: Text(userName),
-                          leading: Icon(
-                            Icons.person,
-                            color: Colors.blue,
-                          ),
+                          leading: IconButton(
+                              onPressed: () {},
+                              icon: Icon(
+                                Icons.person,
+                                color: Colors.blue,
+                              )),
                           onTap: () {
-                            Navigator.of(context).push(
+                            Navigator.of(context).pushReplacement(
                               MaterialPageRoute(
                                 builder: (context) =>
                                     CollaboratedTransactionsPage(

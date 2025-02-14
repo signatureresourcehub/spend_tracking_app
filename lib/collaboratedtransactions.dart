@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
@@ -23,11 +26,73 @@ class _CollaboratedTransactionsPageState
   double _totalCredited = 0.0;
   List<Map<String, dynamic>> _transactions = [];
   Map<String, double> _transactionData = {};
+  String name = "";
 
   @override
   void initState() {
     super.initState();
     _fetchAllCollaboratedTransactions();
+    _fetchUserName();
+  }
+
+  void _showDeleteConfirmationDialog(BuildContext context, String email) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Remove Collaboration"),
+          content: Text("Do you want to remove this user from collaboration?"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop(); // Close the dialog
+                await _deleteCollaborations(email);
+              },
+              child: Text(
+                "Remove",
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _deleteCollaborations(String email) async {
+    User? user = FirebaseAuth.instance.currentUser;
+    try {
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('collaborations')
+          .where('user2', isEqualTo: email)
+          .where('user1', isEqualTo: user!.email)
+          .get();
+
+      for (var doc in querySnapshot.docs) {
+        await FirebaseFirestore.instance
+            .collection('collaborations')
+            .doc(doc.id)
+            .delete();
+      }
+
+      print("Collaborations deleted successfully for user2: $email");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("User removed from collaboration"),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
+        ),
+      );
+      Navigator.pushReplacementNamed(context, '/collaborators');
+    } catch (e) {
+      print("Error deleting collaborations: $e");
+    }
   }
 
   @override
@@ -40,19 +105,31 @@ class _CollaboratedTransactionsPageState
         children: [
           ListView(
             children: [
+              Container(
+                  padding: EdgeInsets.all(10),
+                  child: ListTile(
+                    title: Text(name),
+                    subtitle: Text("Transactions"),
+                    trailing: IconButton(
+                        onPressed: () {
+                          _showDeleteConfirmationDialog(
+                              context, widget.collaboratedUserEmail);
+                        },
+                        icon: Icon(Icons.delete)),
+                  )),
               Row(
                 children: [
                   IconButton(
                     icon: Icon(
                       Icons.calendar_today,
-                      size: 40,
+                      size: 35,
                       color: Colors.blue,
                     ),
                     onPressed: () => _showDateSelectionDialog(context),
                   ),
                   Text(
                     'Select date or date range',
-                    style: TextStyle(fontSize: 20),
+                    style: TextStyle(fontSize: 18),
                   ),
                 ],
               ),
@@ -131,7 +208,7 @@ class _CollaboratedTransactionsPageState
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                           subtitle: Text(
-                              'Date: ${transaction['date']} at ${transaction['time']}'),
+                              'Date: ${transaction['date']} at ${transaction['time']} \n ${transaction['category']}'),
                         ),
                       );
                     },
@@ -331,6 +408,25 @@ class _CollaboratedTransactionsPageState
       print("Transaction Data: $_transactionData");
     } catch (e) {
       print("Error fetching transactions: $e");
+    }
+  }
+
+  Future<void> _fetchUserName() async {
+    try {
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .where('email', isEqualTo: widget.collaboratedUserEmail)
+          .get();
+      Map<String, dynamic> userData =
+          querySnapshot.docs[0].data() as Map<String, dynamic>;
+
+      // Extract the name field
+
+      setState(() {
+        name = userData["name"] ?? "";
+      });
+    } catch (e) {
+      print("Error fetching user name: $e");
     }
   }
 }

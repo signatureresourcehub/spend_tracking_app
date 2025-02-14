@@ -285,8 +285,8 @@ class _DashBoardState extends State<DashBoard> {
               ..._recentTransactions.map((transaction) {
                 return ListTile(
                   title: Text('₹${transaction['amount']}'),
-                  subtitle:
-                      Text('${transaction['date']} at ${transaction['time']}'),
+                  subtitle: Text(
+                      '${transaction['date']} at ${transaction['time']} \n ${transaction['category']}'),
                   trailing: Icon(
                     transaction['type'] == 'debited'
                         ? Icons.trending_down

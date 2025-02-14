@@ -16,6 +16,7 @@ class _AddTransactionState extends State<AddTransaction> {
   final TextEditingController _dateController = TextEditingController();
   final TextEditingController _timeController = TextEditingController();
   String? _transactionType;
+  String? category;
   final storage = const FlutterSecureStorage();
 
   @override
@@ -74,7 +75,8 @@ class _AddTransactionState extends State<AddTransaction> {
         'date': _dateController.text,
         'time': _timeController.text,
         "user": allValues["tokken"],
-        "email": allValues["email"]
+        "email": allValues["email"],
+        "category": category
       };
       print('Transaction: $transaction');
       try {
@@ -141,6 +143,41 @@ class _AddTransactionState extends State<AddTransaction> {
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please select a transaction type';
+                  }
+                  return null;
+                },
+              ),
+              SizedBox(height: 16),
+              // Transaction Category Dropdown
+              DropdownButtonFormField<String>(
+                value: category,
+                decoration: InputDecoration(
+                  labelText: 'Transaction Category',
+                  border: OutlineInputBorder(),
+                ),
+                items: [
+                  'Food',
+                  'Transport',
+                  'Shopping',
+                  'Entertainment',
+                  'Bills',
+                  'Health',
+                  'Personal',
+                  'Others',
+                ].map((String category) {
+                  return DropdownMenuItem<String>(
+                    value: category,
+                    child: Text(category),
+                  );
+                }).toList(),
+                onChanged: (newValue) {
+                  setState(() {
+                    category = newValue;
+                  });
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please select a category';
                   }
                   return null;
                 },
