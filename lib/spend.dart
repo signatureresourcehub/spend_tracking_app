@@ -17,6 +17,13 @@ class _SpendPageState extends State<SpendPage> {
   double _totalSpent = 0.0;
   List<Map<String, dynamic>> _transactions = [];
   Map<String, double> _spendData = {};
+  double _averageSpent = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchAverageSpendForCurrentMonth();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +31,13 @@ class _SpendPageState extends State<SpendPage> {
       body: Center(
         child: ListView(
           children: [
+            Container(
+              padding: EdgeInsets.all(20),
+              child: Text(
+                'AI predicted: Average spent for next month: ₹$_averageSpent',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+            ),
             Row(
               children: [
                 IconButton(
@@ -281,6 +295,47 @@ class _SpendPageState extends State<SpendPage> {
       }
     } catch (e) {
       print("Error fetching debited transactions: $e");
+    }
+  }
+
+  Future<void> _fetchAverageSpendForCurrentMonth() async {
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        DateTime now = DateTime.now();
+        DateTime firstDayOfMonth = DateTime(now.year, now.month, 1);
+        DateTime lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
+
+        QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+            .collection('transactions')
+            .where('user', isEqualTo: user.uid)
+            .where('date',
+                isGreaterThanOrEqualTo:
+                    DateFormat('dd-MM-yyyy').format(firstDayOfMonth))
+            .where('date',
+                isLessThanOrEqualTo:
+                    DateFormat('dd-MM-yyyy').format(lastDayOfMonth))
+            .where('type', isEqualTo: 'debited')
+            .get();
+
+        double totalAmount = 0.0;
+        int transactionCount = querySnapshot.docs.length;
+
+        for (var doc in querySnapshot.docs) {
+          double amount = double.parse(doc['amount']);
+          totalAmount += amount;
+        }
+
+        setState(() {
+          _averageSpent =
+              transactionCount > 0 ? totalAmount / transactionCount : 0.0;
+        });
+
+        // Debug prints to verify data
+        print("Average Spent for Current Month: $_averageSpent");
+      }
+    } catch (e) {
+      print("Error fetching average spend for current month: $e");
     }
   }
 }

@@ -10,7 +10,7 @@ class IntroPage3 extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text("test 3"),
+          Text("Every transcation  tells your financial story"),
           Center(
             child: Lottie.asset('assets/animations/Animation3.json'),
           ),
