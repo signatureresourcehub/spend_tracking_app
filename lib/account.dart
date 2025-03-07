@@ -23,11 +23,11 @@ class _AccountPageState extends State<AccountPage> {
               Navigator.of(context).pushNamed('/collaborators');
             },
           ),
-          ListTile(
-            leading: Icon(Icons.delete),
-            title: Text('Delete Account'),
-            onTap: () async {},
-          ),
+          // ListTile(
+          //   leading: Icon(Icons.delete),
+          //   title: Text('Delete Account'),
+          //   onTap: () async {},
+          // ),
           ListTile(
             leading: Icon(Icons.help),
             title: Text('Help'),

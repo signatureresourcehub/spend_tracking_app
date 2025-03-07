@@ -18,6 +18,7 @@ class _TransactionPageState extends State<TransactionPage> {
   double _totalCredited = 0.0;
   List<Map<String, dynamic>> _transactions = [];
   Map<String, double> _transactionData = {};
+  ChartType _chartType = ChartType.ring;
 
   @override
   void initState() {
@@ -74,11 +75,32 @@ class _TransactionPageState extends State<TransactionPage> {
                 ),
               if (_transactions.isNotEmpty)
                 Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: DropdownButton<ChartType>(
+                    value: _chartType,
+                    items: ChartType.values.map((ChartType type) {
+                      return DropdownMenuItem<ChartType>(
+                        value: type,
+                        child: Text(type.toString().split('.').last),
+                      );
+                    }).toList(),
+                    onChanged: (ChartType? newType) {
+                      setState(() {
+                        if (newType != null) {
+                          _chartType = newType;
+                        }
+                      });
+                    },
+                  ),
+                ),
+              SizedBox(height: 20),
+              if (_transactionData.isNotEmpty)
+                Container(
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: PieChart(
                       dataMap: _transactionData,
-                      chartType: ChartType.ring,
+                      chartType: _chartType,
                       chartRadius: MediaQuery.of(context).size.width / 2,
                       ringStrokeWidth: 32,
                       animationDuration: Duration(milliseconds: 800),
