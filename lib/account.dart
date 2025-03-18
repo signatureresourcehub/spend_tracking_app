@@ -31,7 +31,9 @@ class _AccountPageState extends State<AccountPage> {
           ListTile(
             leading: Icon(Icons.help),
             title: Text('Help'),
-            onTap: () async {},
+            onTap: () async {
+              Navigator.of(context).pushNamed('/help');
+            },
           ),
           ListTile(
             leading: Icon(Icons.logout),

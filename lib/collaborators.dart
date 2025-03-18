@@ -321,7 +321,10 @@ class _CollaboratorsPageState extends State<CollaboratorsPage> {
                         padding: EdgeInsets.only(top: 10, bottom: 10),
                         child: ListTile(
                           tileColor: Colors.grey[200],
-                          title: Text(userName),
+                          title: Text(
+                            userName,
+                            style: TextStyle(color: Colors.black),
+                          ),
                           leading: IconButton(
                               onPressed: () {},
                               icon: Icon(

@@ -225,7 +225,7 @@ class _DashBoardState extends State<DashBoard> {
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.greenAccent, Colors.green],
+                  colors: [Colors.blue, Colors.purple],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -308,7 +308,7 @@ class _DashBoardState extends State<DashBoard> {
                   "₹",
                   style: TextStyle(fontSize: 20),
                 ),
-                tileColor: Colors.grey[200],
+                tileColor: Colors.blue,
                 title: Text("Set Budget",
                     style: TextStyle(fontWeight: FontWeight.bold)),
               ),

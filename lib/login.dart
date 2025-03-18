@@ -227,6 +227,7 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                SizedBox(height: 16),
                 ClipOval(
                   child: Container(
                     width: 100.0, // Set the width of the circle
@@ -307,7 +308,7 @@ class _LoginPageState extends State<LoginPage> {
                         RoundedRectangleBorder(), // Use RoundedRectangleBorder
                     padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                     side: BorderSide(
-                        color: Colors.black), // Set border color to black
+                        color: Colors.blue), // Set border color to black
                     minimumSize: Size(double.infinity, 0),
                   ),
                 ),

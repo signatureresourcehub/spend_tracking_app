@@ -3,7 +3,7 @@
      <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_REMOTE_MESSAGING" />
     <application
-        android:label="myapp"
+        android:label="Finzo"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

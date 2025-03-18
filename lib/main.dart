@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:myapp/collaborators.dart';
+import 'package:myapp/help_page.dart';
 import 'package:myapp/mainpage.dart';
 import 'package:myapp/onboarding_screen.dart';
 import 'package:myapp/welcome.dart';
@@ -152,9 +153,6 @@ class MyApp extends StatelessWidget {
         ),
         inputDecorationTheme: InputDecorationTheme(
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-          //filled: true,
-          //fillColor: Colors.grey[200],
-          //hintStyle: TextStyle(color: Colors.grey[100]),
         ),
         appBarTheme: AppBarTheme(
           backgroundColor: Colors.teal,
@@ -164,26 +162,38 @@ class MyApp extends StatelessWidget {
         ),
       ),
       darkTheme: ThemeData.dark().copyWith(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.teal,
-          brightness: Brightness.dark,
-        ),
-        appBarTheme: AppBarTheme(
-          backgroundColor: Colors.red,
-          foregroundColor: Colors.black,
-          elevation: 2,
-          titleTextStyle: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-      ),
+          useMaterial3: true,
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.teal,
+            brightness: Brightness.dark,
+          ),
+          appBarTheme: AppBarTheme(
+            backgroundColor: Colors.blue,
+            foregroundColor: Colors.black,
+            elevation: 2,
+            titleTextStyle:
+                TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+            ),
+          ),
+          floatingActionButtonTheme: FloatingActionButtonThemeData(
+            backgroundColor: Colors.red,
+            foregroundColor: Colors.white,
+          )),
+
       routes: {
         '/registration': (context) => RegistrationPage(),
         '/login': (context) => LoginPage(),
         '/welcome': (context) => MainPage(),
         '/collaborators': (context) => CollaboratorsPage(),
+        '/help': (context) => HelpPage(),
       },
       themeMode:
-          ThemeMode.light, // Automatically switches based on system settings
+          ThemeMode.dark, // Automatically switches based on system settings
       home: OnboardingScreen(),
     );
   }
